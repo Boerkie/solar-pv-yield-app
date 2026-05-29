@@ -3,6 +3,7 @@ import cors from 'cors';
 import express from 'express';
 import { buildCacheKey, getCachedValue, setCachedValue } from './cache.js';
 import { buildSimulationResult } from './aggregates.js';
+import { fetchWeatherForecast } from './forecast.js';
 import { PvgisProvider } from './providers/pvgisProvider.js';
 import { validateSimulationRequest } from './validation.js';
 
@@ -22,6 +23,7 @@ app.get(['/api/health', '/health'], (_request, response) => {
   response.json({ status: 'ok', service: 'solar-pv-yield-api' });
 });
 
+app.get(['/api/forecast', '/forecast'], getForecast);
 app.post(['/api/simulate', '/simulate'], simulateProduction);
 
 app.all(['/api/simulate', '/simulate'], (request, response) => {
@@ -64,11 +66,33 @@ async function simulateProduction(request, response) {
   }
 }
 
+async function getForecast(request, response) {
+  const latitude = Number(request.query.latitude);
+  const longitude = Number(request.query.longitude);
+
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+    response.status(400).json({ message: 'Valid latitude and longitude query parameters are required.' });
+    return;
+  }
+
+  try {
+    const forecast = await fetchWeatherForecast({ latitude, longitude });
+    response.json(forecast);
+  } catch (error) {
+    console.error(error);
+    response.status(502).json({
+      message: 'Unable to retrieve weather forecast from the configured provider.',
+      detail: error?.cause?.message || error?.message || 'Unknown forecast provider error'
+    });
+  }
+}
+
 app.use((request, response) => {
   response.status(404).json({
     message: `No API route matched ${request.method} ${request.originalUrl}.`,
     availableEndpoints: [
       'GET /api/health',
+      'GET /api/forecast',
       'POST /api/simulate',
       'POST /simulate'
     ]
@@ -77,5 +101,5 @@ app.use((request, response) => {
 
 app.listen(port, () => {
   console.log(`Solar PV yield API listening on http://localhost:${port}`);
-  console.log('Available endpoints: GET /api/health, POST /api/simulate, POST /simulate');
+  console.log('Available endpoints: GET /api/health, GET /api/forecast, POST /api/simulate, POST /simulate');
 });

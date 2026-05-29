@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Dashboard } from './components/Dashboard';
+import { ForecastPanel } from './components/ForecastPanel';
 import { SiteMap } from './components/SiteMap';
 import { StringEditor } from './components/StringEditor';
 import { SystemLimitsPanel } from './components/SystemLimitsPanel';
 import { DEFAULT_SITE, DEFAULT_STRINGS, DEFAULT_SYSTEM_LIMITS } from './defaults';
-import { PVStringConfig, SimulationResult, Site, SystemLimits } from './types';
+import { ForecastResult, PVStringConfig, SimulationResult, Site, SystemLimits } from './types';
 import { calculateDestinationPoint, calculateDistanceMetres } from './utils/geo';
 import { clearSavedSetup, loadSavedSetup, saveSetup } from './utils/localSettings';
 import './styles.css';
@@ -17,6 +18,9 @@ function App() {
   const [activeDrawStringId, setActiveDrawStringId] = useState<string | undefined>();
   const [mapScrollLocked, setMapScrollLocked] = useState(savedSetup?.mapScrollLocked ?? true);
   const [result, setResult] = useState<SimulationResult | null>(null);
+  const [forecast, setForecast] = useState<ForecastResult | null>(null);
+  const [isForecastLoading, setIsForecastLoading] = useState(false);
+  const [forecastError, setForecastError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,6 +68,8 @@ function App() {
 
     setActiveDrawStringId((currentStringId) => currentStringId === stringId ? undefined : currentStringId);
     setResult(null);
+    setForecast(null);
+    setForecastError(null);
   }
 
   function addSolarArray() {
@@ -105,10 +111,26 @@ function App() {
     try {
       const payload = await postSimulation({ site, strings });
       setResult(payload);
+      setForecast(null);
+      setForecastError(null);
     } catch (simulationError) {
       setError(simulationError instanceof Error ? simulationError.message : 'Simulation failed.');
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function loadForecast() {
+    setIsForecastLoading(true);
+    setForecastError(null);
+
+    try {
+      const payload = await getForecast(site);
+      setForecast(payload);
+    } catch (forecastLoadError) {
+      setForecastError(forecastLoadError instanceof Error ? forecastLoadError.message : 'Forecast failed.');
+    } finally {
+      setIsForecastLoading(false);
     }
   }
 
@@ -214,7 +236,18 @@ function App() {
       </section>
 
       {error ? <div className="error-box">{error}</div> : null}
-      {result ? <Dashboard result={result} systemLimits={systemLimits} /> : <EmptyState />}
+      {result ? (
+        <>
+          <Dashboard result={result} systemLimits={systemLimits} />
+          <ForecastPanel
+            result={result}
+            forecast={forecast}
+            isLoading={isForecastLoading}
+            error={forecastError}
+            onLoad={loadForecast}
+          />
+        </>
+      ) : <EmptyState />}
     </main>
   );
 }
@@ -274,6 +307,46 @@ async function postSimulation(body: { site: Site; strings: PVStringConfig[] }) {
   }
 
   throw new Error(`${lastError?.message || 'Simulation failed.'} The backend is running, but the simulation route was not found. Confirm the terminal shows POST /api/simulate or POST /simulate after clicking Estimate production.`);
+}
+
+async function getForecast(site: Site) {
+  const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+  const query = `latitude=${encodeURIComponent(site.latitude)}&longitude=${encodeURIComponent(site.longitude)}`;
+  const apiUrls = configuredApiBaseUrl
+    ? buildConfiguredApiUrls(configuredApiBaseUrl).map((apiUrl) => apiUrl.replace(/\/simulate$/, `/forecast?${query}`))
+    : [
+      `/api/forecast?${query}`,
+      `/forecast?${query}`,
+      `http://127.0.0.1:3001/api/forecast?${query}`,
+      `http://localhost:3001/api/forecast?${query}`,
+      `http://127.0.0.1:3001/forecast?${query}`,
+      `http://localhost:3001/forecast?${query}`
+    ];
+
+  let lastError: Error | null = null;
+
+  for (const apiUrl of apiUrls) {
+    try {
+      const response = await fetch(apiUrl);
+      const payload = await readJsonResponse(response);
+
+      if (!response.ok) {
+        lastError = new Error(payload?.message || payload?.detail || `Forecast failed with HTTP ${response.status} from ${apiUrl}.`);
+
+        if (response.status === 404 || response.status >= 500) {
+          continue;
+        }
+
+        throw lastError;
+      }
+
+      return payload as ForecastResult;
+    } catch (fetchError) {
+      lastError = fetchError instanceof Error ? fetchError : new Error('Forecast failed.');
+    }
+  }
+
+  throw new Error(lastError?.message || 'Forecast failed.');
 }
 
 function buildConfiguredApiUrls(configuredApiBaseUrl: string) {

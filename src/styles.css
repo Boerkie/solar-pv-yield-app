@@ -72,6 +72,7 @@ p {
 .map-card,
 .chart-card,
 .usage-card,
+.forecast-card,
 .metric-card,
 .notice-card,
 .period-card,
@@ -204,6 +205,7 @@ p {
 .notice-card,
 .chart-card,
 .usage-card,
+.forecast-card,
 .empty-state,
 .error-box {
   padding: 18px;
@@ -518,6 +520,12 @@ select:focus {
   gap: 16px;
 }
 
+.forecast-card {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
 .usage-flow-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -535,6 +543,59 @@ select:focus {
 .usage-flow-grid strong {
   display: block;
   color: #172033;
+}
+
+.forecast-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.forecast-day {
+  display: grid;
+  gap: 14px;
+  border-radius: 14px;
+  border: 1px solid #e5ebf4;
+  background: #f9fbff;
+  padding: 14px;
+}
+
+.forecast-day strong,
+.forecast-day span {
+  display: block;
+}
+
+.forecast-day span {
+  color: #5f6f85;
+}
+
+.forecast-values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.forecast-values span {
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5ebf4;
+  padding: 10px;
+}
+
+.positive-value strong {
+  color: #15803d;
+}
+
+.negative-value strong {
+  color: #b91c1c;
+}
+
+.empty-inline {
+  border-radius: 14px;
+  border: 1px dashed #ccd6e3;
+  background: #f9fbff;
+  color: #5f6f85;
+  padding: 16px;
 }
 
 .period-card {
@@ -649,6 +710,8 @@ select:focus {
   .setup-grid,
   .metric-grid,
   .chart-grid.two-columns,
+  .forecast-grid,
+  .forecast-values,
   .limit-summary-grid,
   .usage-flow-grid,
   .string-editor-header,

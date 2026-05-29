@@ -130,3 +130,19 @@ export type UsageSimulationResult = {
   };
   monthly: MonthlyUsageAggregate[];
 };
+
+export type ForecastDay = {
+  date: string;
+  shortwaveRadiationKwhM2: number;
+  averageCloudCoverPercent: number;
+  averageTemperatureC: number;
+  peakShortwaveWm2: number;
+};
+
+export type ForecastResult = {
+  provider: string;
+  providerUrl: string;
+  timezone: string;
+  generatedAt: string;
+  days: ForecastDay[];
+};
