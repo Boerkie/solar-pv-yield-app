@@ -139,7 +139,14 @@ p {
   align-items: start;
 }
 
-.site-card-header .ghost-button {
+.site-card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.site-card-actions .ghost-button {
   white-space: nowrap;
 }
 
@@ -570,7 +577,8 @@ select:focus {
   .array-toolbar,
   .actions-card,
   .period-card,
-  .site-card-header {
+  .site-card-header,
+  .site-card-actions {
     flex-direction: column;
     align-items: stretch;
   }

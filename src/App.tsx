@@ -1,51 +1,29 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { SiteMap } from './components/SiteMap';
 import { StringEditor } from './components/StringEditor';
+import { DEFAULT_SITE, DEFAULT_STRINGS } from './defaults';
 import { PVStringConfig, SimulationResult, Site } from './types';
 import { calculateDestinationPoint, calculateDistanceMetres } from './utils/geo';
+import { clearSavedSetup, loadSavedSetup, saveSetup } from './utils/localSettings';
 import './styles.css';
 
-const DEFAULT_SITE: Site = {
-  latitude: -33.9249,
-  longitude: 18.4241,
-  label: 'Cape Town, South Africa'
-};
-
-const DEFAULT_STRINGS: PVStringConfig[] = [
-  {
-    id: 'east',
-    name: 'East string',
-    panelCount: 5,
-    panelWatts: 550,
-    capacityKwp: 2.75,
-    tiltDegrees: 40,
-    azimuthDegrees: 90,
-    lossPercent: 14
-  },
-  {
-    id: 'north',
-    name: 'North string',
-    panelCount: 4,
-    panelWatts: 550,
-    capacityKwp: 2.2,
-    tiltDegrees: 40,
-    azimuthDegrees: 0,
-    lossPercent: 14
-  }
-];
-
 function App() {
-  const [site, setSite] = useState(DEFAULT_SITE);
-  const [strings, setStrings] = useState(DEFAULT_STRINGS);
+  const savedSetup = useMemo(() => loadSavedSetup(), []);
+  const [site, setSite] = useState(savedSetup?.site ?? DEFAULT_SITE);
+  const [strings, setStrings] = useState(savedSetup?.strings ?? DEFAULT_STRINGS);
   const [activeDrawStringId, setActiveDrawStringId] = useState<string | undefined>();
-  const [mapScrollLocked, setMapScrollLocked] = useState(true);
+  const [mapScrollLocked, setMapScrollLocked] = useState(savedSetup?.mapScrollLocked ?? true);
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const totalCapacity = useMemo(() => strings.reduce((total, pvString) => total + Number(pvString.capacityKwp || 0), 0), [strings]);
   const warnings = useMemo(() => buildWarnings(site, strings), [site, strings]);
+
+  useEffect(() => {
+    saveSetup({ site, strings, mapScrollLocked });
+  }, [mapScrollLocked, site, strings]);
 
   function handleSiteChange(nextSite: Site) {
     const nextStart = { lat: nextSite.latitude, lng: nextSite.longitude };
@@ -107,6 +85,16 @@ function App() {
     setActiveDrawStringId(nextString.id);
   }
 
+  function resetSavedSetup() {
+    clearSavedSetup();
+    setSite(DEFAULT_SITE);
+    setStrings(DEFAULT_STRINGS);
+    setMapScrollLocked(true);
+    setActiveDrawStringId(undefined);
+    setResult(null);
+    setError(null);
+  }
+
   async function runSimulation() {
     setIsLoading(true);
     setError(null);
@@ -162,9 +150,12 @@ function App() {
               <h2>Site</h2>
               <p>Latitude and longitude are extracted from the selected map point. Azimuths are stored as true-north compass bearings.</p>
             </div>
-            <button type="button" className="ghost-button" onClick={() => setMapScrollLocked((currentValue) => !currentValue)}>
-              {mapScrollLocked ? 'Unlock map scrolling' : 'Lock map scrolling'}
-            </button>
+            <div className="site-card-actions">
+              <button type="button" className="ghost-button" onClick={() => setMapScrollLocked((currentValue) => !currentValue)}>
+                {mapScrollLocked ? 'Unlock map scrolling' : 'Lock map scrolling'}
+              </button>
+              <button type="button" className="ghost-button" onClick={resetSavedSetup}>Reset sample defaults</button>
+            </div>
           </div>
           <div className="input-grid">
             <label>
