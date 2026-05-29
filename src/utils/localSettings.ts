@@ -1,4 +1,5 @@
-import { PVStringConfig, Site } from '../types';
+import { DEFAULT_SYSTEM_LIMITS } from '../defaults';
+import { PVStringConfig, Site, SystemLimits } from '../types';
 
 const STORAGE_KEY = 'solar-pv-yield-app:setup:v1';
 
@@ -6,6 +7,7 @@ export type SavedSetup = {
   site: Site;
   strings: PVStringConfig[];
   mapScrollLocked: boolean;
+  systemLimits: SystemLimits;
 };
 
 export function loadSavedSetup(): SavedSetup | null {
@@ -29,11 +31,35 @@ export function loadSavedSetup(): SavedSetup | null {
     return {
       site: parsedValue.site,
       strings: parsedValue.strings.filter(isPvString),
-      mapScrollLocked: parsedValue.mapScrollLocked !== false
+      mapScrollLocked: parsedValue.mapScrollLocked !== false,
+      systemLimits: mergeSystemLimits(parsedValue.systemLimits)
     };
   } catch {
     return null;
   }
+}
+
+function mergeSystemLimits(value: unknown): SystemLimits {
+  const systemLimits = value as Partial<SystemLimits>;
+
+  if (!systemLimits || typeof systemLimits !== 'object') {
+    return DEFAULT_SYSTEM_LIMITS;
+  }
+
+  return {
+    inverterMaxKw: finiteOrDefault(systemLimits.inverterMaxKw, DEFAULT_SYSTEM_LIMITS.inverterMaxKw),
+    batteryCapacityKwh: finiteOrDefault(systemLimits.batteryCapacityKwh, DEFAULT_SYSTEM_LIMITS.batteryCapacityKwh),
+    batteryReservePercent: finiteOrDefault(systemLimits.batteryReservePercent, DEFAULT_SYSTEM_LIMITS.batteryReservePercent),
+    batteryShutdownPercent: finiteOrDefault(systemLimits.batteryShutdownPercent, DEFAULT_SYSTEM_LIMITS.batteryShutdownPercent),
+    batteryChargeCurrentAmps: finiteOrDefault(systemLimits.batteryChargeCurrentAmps, DEFAULT_SYSTEM_LIMITS.batteryChargeCurrentAmps),
+    batteryNominalVoltage: finiteOrDefault(systemLimits.batteryNominalVoltage, DEFAULT_SYSTEM_LIMITS.batteryNominalVoltage),
+    idleLoadWatts: finiteOrDefault(systemLimits.idleLoadWatts, DEFAULT_SYSTEM_LIMITS.idleLoadWatts),
+    exportMode: systemLimits.exportMode === 'export-limit' || systemLimits.exportMode === 'unlimited-export' || systemLimits.exportMode === 'zero-export'
+      ? systemLimits.exportMode
+      : DEFAULT_SYSTEM_LIMITS.exportMode,
+    exportLimitKw: finiteOrDefault(systemLimits.exportLimitKw, DEFAULT_SYSTEM_LIMITS.exportLimitKw),
+    startingBatterySocPercent: finiteOrDefault(systemLimits.startingBatterySocPercent, DEFAULT_SYSTEM_LIMITS.startingBatterySocPercent)
+  };
 }
 
 export function saveSetup(setup: SavedSetup) {
@@ -67,4 +93,8 @@ function isPvString(value: unknown): value is PVStringConfig {
     && Number.isFinite(pvString.tiltDegrees)
     && Number.isFinite(pvString.azimuthDegrees)
     && Number.isFinite(pvString.lossPercent);
+}
+
+function finiteOrDefault(value: unknown, defaultValue: number) {
+  return Number.isFinite(value) ? Number(value) : defaultValue;
 }

@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { SiteMap } from './components/SiteMap';
 import { StringEditor } from './components/StringEditor';
-import { DEFAULT_SITE, DEFAULT_STRINGS } from './defaults';
-import { PVStringConfig, SimulationResult, Site } from './types';
+import { SystemLimitsPanel } from './components/SystemLimitsPanel';
+import { DEFAULT_SITE, DEFAULT_STRINGS, DEFAULT_SYSTEM_LIMITS } from './defaults';
+import { PVStringConfig, SimulationResult, Site, SystemLimits } from './types';
 import { calculateDestinationPoint, calculateDistanceMetres } from './utils/geo';
 import { clearSavedSetup, loadSavedSetup, saveSetup } from './utils/localSettings';
 import './styles.css';
@@ -12,6 +13,7 @@ function App() {
   const savedSetup = useMemo(() => loadSavedSetup(), []);
   const [site, setSite] = useState(savedSetup?.site ?? DEFAULT_SITE);
   const [strings, setStrings] = useState(savedSetup?.strings ?? DEFAULT_STRINGS);
+  const [systemLimits, setSystemLimits] = useState(savedSetup?.systemLimits ?? DEFAULT_SYSTEM_LIMITS);
   const [activeDrawStringId, setActiveDrawStringId] = useState<string | undefined>();
   const [mapScrollLocked, setMapScrollLocked] = useState(savedSetup?.mapScrollLocked ?? true);
   const [result, setResult] = useState<SimulationResult | null>(null);
@@ -19,11 +21,11 @@ function App() {
   const [error, setError] = useState<string | null>(null);
 
   const totalCapacity = useMemo(() => strings.reduce((total, pvString) => total + Number(pvString.capacityKwp || 0), 0), [strings]);
-  const warnings = useMemo(() => buildWarnings(site, strings), [site, strings]);
+  const warnings = useMemo(() => buildWarnings(site, strings, systemLimits), [site, strings, systemLimits]);
 
   useEffect(() => {
-    saveSetup({ site, strings, mapScrollLocked });
-  }, [mapScrollLocked, site, strings]);
+    saveSetup({ site, strings, mapScrollLocked, systemLimits });
+  }, [mapScrollLocked, site, strings, systemLimits]);
 
   function handleSiteChange(nextSite: Site) {
     const nextStart = { lat: nextSite.latitude, lng: nextSite.longitude };
@@ -89,6 +91,7 @@ function App() {
     clearSavedSetup();
     setSite(DEFAULT_SITE);
     setStrings(DEFAULT_STRINGS);
+    setSystemLimits(DEFAULT_SYSTEM_LIMITS);
     setMapScrollLocked(true);
     setActiveDrawStringId(undefined);
     setResult(null);
@@ -142,6 +145,8 @@ function App() {
         </div>
         <button type="button" className="secondary-button" onClick={addSolarArray}>Add Solar Array</button>
       </section>
+
+      <SystemLimitsPanel systemLimits={systemLimits} onChange={setSystemLimits} />
 
       <section className="setup-grid">
         <div className="site-form card">
@@ -297,7 +302,7 @@ async function readJsonResponse(response: Response) {
   }
 }
 
-function buildWarnings(site: Site, strings: PVStringConfig[]) {
+function buildWarnings(site: Site, strings: PVStringConfig[], systemLimits: SystemLimits) {
   const warnings: string[] = [];
 
   if (site.latitude < -90 || site.latitude > 90) {
@@ -329,6 +334,30 @@ function buildWarnings(site: Site, strings: PVStringConfig[]) {
       warnings.push(`${pvString.name} tilt is steep. This may be correct for your roof, but verify the value.`);
     }
   });
+
+  if (systemLimits.inverterMaxKw <= 0) {
+    warnings.push('Invalid inverter limit: max output must be positive.');
+  }
+
+  if (systemLimits.batteryCapacityKwh < 0) {
+    warnings.push('Invalid battery capacity: capacity cannot be negative.');
+  }
+
+  if (systemLimits.batteryReservePercent < 0 || systemLimits.batteryReservePercent > 100) {
+    warnings.push('Invalid battery reserve: must be between 0 and 100%.');
+  }
+
+  if (systemLimits.batteryShutdownPercent < 0 || systemLimits.batteryShutdownPercent > 100) {
+    warnings.push('Invalid battery shutdown floor: must be between 0 and 100%.');
+  }
+
+  if (systemLimits.batteryReservePercent < systemLimits.batteryShutdownPercent) {
+    warnings.push('Battery reserve is below the shutdown floor. Raise the reserve or check the shutdown value.');
+  }
+
+  if (systemLimits.batteryChargeCurrentAmps < 0 || systemLimits.batteryNominalVoltage < 0 || systemLimits.idleLoadWatts < 0) {
+    warnings.push('Invalid system limits: charge current, voltage and idle load cannot be negative.');
+  }
 
   return warnings;
 }

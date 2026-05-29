@@ -1,4 +1,4 @@
-import { PVStringConfig, Site } from './types';
+import { PVStringConfig, Site, SystemLimits } from './types';
 
 export const DEFAULT_SITE: Site = {
   latitude: -33.9249,
@@ -28,3 +28,16 @@ export const DEFAULT_STRINGS: PVStringConfig[] = [
     lossPercent: 14
   }
 ];
+
+export const DEFAULT_SYSTEM_LIMITS: SystemLimits = {
+  inverterMaxKw: 8,
+  batteryCapacityKwh: 20,
+  batteryReservePercent: 40,
+  batteryShutdownPercent: 25,
+  batteryChargeCurrentAmps: 40,
+  batteryNominalVoltage: 48,
+  idleLoadWatts: 150,
+  exportMode: 'zero-export',
+  exportLimitKw: 0,
+  startingBatterySocPercent: 40
+};

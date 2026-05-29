@@ -26,6 +26,21 @@ export type PVStringConfig = {
   arrow?: ArrowDefinition;
 };
 
+export type ExportMode = 'zero-export' | 'export-limit' | 'unlimited-export';
+
+export type SystemLimits = {
+  inverterMaxKw: number;
+  batteryCapacityKwh: number;
+  batteryReservePercent: number;
+  batteryShutdownPercent: number;
+  batteryChargeCurrentAmps: number;
+  batteryNominalVoltage: number;
+  idleLoadWatts: number;
+  exportMode: ExportMode;
+  exportLimitKw: number;
+  startingBatterySocPercent: number;
+};
+
 export type SimulationString = PVStringConfig & {
   annualTotalKwh: number;
 };
