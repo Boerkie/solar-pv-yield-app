@@ -48,6 +48,14 @@ export type EconomicAssumptions = {
   systemCostRand: number;
 };
 
+export type ObservedAnnualStats = {
+  id: string;
+  year: number;
+  pvGeneratedKwh: number;
+  gridImportKwh: number;
+  batteryThroughputKwh: number;
+};
+
 export type SimulationString = PVStringConfig & {
   annualTotalKwh: number;
 };

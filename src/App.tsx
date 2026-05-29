@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { EconomicsPanel } from './components/EconomicsPanel';
 import { ForecastPanel } from './components/ForecastPanel';
+import { ObservedStatsPanel } from './components/ObservedStatsPanel';
 import { SiteMap } from './components/SiteMap';
 import { StringEditor } from './components/StringEditor';
 import { SystemLimitsPanel } from './components/SystemLimitsPanel';
-import { DEFAULT_ECONOMIC_ASSUMPTIONS, DEFAULT_SITE, DEFAULT_STRINGS, DEFAULT_SYSTEM_LIMITS } from './defaults';
-import { EconomicAssumptions, ForecastResult, PVStringConfig, SimulationResult, Site, SystemLimits } from './types';
+import { DEFAULT_ECONOMIC_ASSUMPTIONS, DEFAULT_OBSERVED_STATS, DEFAULT_SITE, DEFAULT_STRINGS, DEFAULT_SYSTEM_LIMITS } from './defaults';
+import { EconomicAssumptions, ForecastResult, ObservedAnnualStats, PVStringConfig, SimulationResult, Site, SystemLimits } from './types';
 import { calculateDestinationPoint, calculateDistanceMetres } from './utils/geo';
 import { clearSavedSetup, loadSavedSetup, saveSetup } from './utils/localSettings';
 import './styles.css';
@@ -17,6 +18,7 @@ function App() {
   const [strings, setStrings] = useState(savedSetup?.strings ?? DEFAULT_STRINGS);
   const [systemLimits, setSystemLimits] = useState(savedSetup?.systemLimits ?? DEFAULT_SYSTEM_LIMITS);
   const [economicAssumptions, setEconomicAssumptions] = useState<EconomicAssumptions>(savedSetup?.economicAssumptions ?? DEFAULT_ECONOMIC_ASSUMPTIONS);
+  const [observedStats, setObservedStats] = useState<ObservedAnnualStats[]>(savedSetup?.observedStats ?? DEFAULT_OBSERVED_STATS);
   const [activeDrawStringId, setActiveDrawStringId] = useState<string | undefined>();
   const [mapScrollLocked, setMapScrollLocked] = useState(savedSetup?.mapScrollLocked ?? true);
   const [result, setResult] = useState<SimulationResult | null>(null);
@@ -30,8 +32,8 @@ function App() {
   const warnings = useMemo(() => buildWarnings(site, strings, systemLimits), [site, strings, systemLimits]);
 
   useEffect(() => {
-    saveSetup({ site, strings, mapScrollLocked, systemLimits, economicAssumptions });
-  }, [economicAssumptions, mapScrollLocked, site, strings, systemLimits]);
+    saveSetup({ site, strings, mapScrollLocked, systemLimits, economicAssumptions, observedStats });
+  }, [economicAssumptions, mapScrollLocked, observedStats, site, strings, systemLimits]);
 
   function handleSiteChange(nextSite: Site) {
     const nextStart = { lat: nextSite.latitude, lng: nextSite.longitude };
@@ -101,6 +103,7 @@ function App() {
     setStrings(DEFAULT_STRINGS);
     setSystemLimits(DEFAULT_SYSTEM_LIMITS);
     setEconomicAssumptions(DEFAULT_ECONOMIC_ASSUMPTIONS);
+    setObservedStats(DEFAULT_OBSERVED_STATS);
     setMapScrollLocked(true);
     setActiveDrawStringId(undefined);
     setResult(null);
@@ -242,6 +245,12 @@ function App() {
       {result ? (
         <>
           <Dashboard result={result} systemLimits={systemLimits} />
+          <ObservedStatsPanel
+            result={result}
+            systemLimits={systemLimits}
+            observedStats={observedStats}
+            onChange={setObservedStats}
+          />
           <ForecastPanel
             result={result}
             forecast={forecast}

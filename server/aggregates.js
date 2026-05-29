@@ -7,7 +7,7 @@ export function buildSimulationResult(site, pvStrings, providerResults) {
 
   return {
     generatedAt: new Date().toISOString(),
-    estimateNotice: 'Estimate only. PVGIS historical irradiance and weather data are used with the PVGIS terrain horizon enabled. Nearby shading from houses, trees, chimneys or roof features, plus inverter clipping, batteries, load demand and export limits, are not modelled.',
+    estimateNotice: 'PVGIS backend estimate only. Historical irradiance and weather data are used with the PVGIS terrain horizon enabled. Nearby shading from houses, trees, chimneys or roof features is not modelled. Use the usage-limit section for battery, load and export constraints.',
     provider: 'PVGIS',
     site,
     strings: pvStrings.map((pvString) => ({

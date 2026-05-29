@@ -175,8 +175,8 @@ export function Dashboard({ result, systemLimits }: DashboardProps) {
 
       <div className="metric-grid">
         <MetricCard label="Total DC capacity" value={`${result.totals.capacityKwp.toFixed(2)} kWp`} helpText="Configured array total" />
-        <MetricCard label="Expected annual yield" value={`${formatNumber(result.totals.annualKwh)} kWh/year`} helpText="Average of complete PVGIS years" />
-        <MetricCard label="Average daily yield" value={`${result.totals.averageDailyKwh.toFixed(2)} kWh/day`} helpText="Annual estimate / 365" />
+        <MetricCard label="PVGIS unconstrained potential" value={`${formatNumber(result.totals.annualKwh)} kWh/year`} helpText="Before house load, battery and export limits" />
+        <MetricCard label="Average potential per day" value={`${result.totals.averageDailyKwh.toFixed(2)} kWh/day`} helpText="PVGIS annual potential / 365" />
         <MetricCard label="Data provider" value={result.provider} helpText={result.cache?.hit ? 'Loaded from local API cache' : 'Fresh provider request'} />
       </div>
 
@@ -186,16 +186,16 @@ export function Dashboard({ result, systemLimits }: DashboardProps) {
           <p>Hour-by-hour estimate with idle load, reserve SOC, battery charge limit and export policy applied to the PVGIS typical year.</p>
         </div>
         <div className="metric-grid">
-          <MetricCard label="Battery charge limit" value={`${usageSimulation.batteryChargeLimitKw.toFixed(2)} kW`} helpText={`${systemLimits.batteryChargeCurrentAmps} A total at ${systemLimits.batteryNominalVoltage} V`} />
-          <MetricCard label="Idle usable ceiling" value={`${usageSimulation.idleSolarUseCeilingKw.toFixed(2)} kW`} helpText="Battery charge limit plus idle load" />
-          <MetricCard label="Curtailed solar" value={`${formatNumber(usageSimulation.totals.curtailedKwh)} kWh/year`} helpText={systemLimits.exportMode === 'zero-export' ? 'Zero-export surplus and clipping' : 'Surplus after export and charging'} />
+          <MetricCard label="Max battery charging power" value={`${usageSimulation.batteryChargeLimitKw.toFixed(2)} kW`} helpText={`${systemLimits.batteryChargeCurrentAmps} A total at ${systemLimits.batteryNominalVoltage} V`} />
+          <MetricCard label="PV usable at base load" value={`${usageSimulation.idleSolarUseCeilingKw.toFixed(2)} kW`} helpText="Base load plus max battery charging power" />
+          <MetricCard label="Estimated unused PV" value={`${formatNumber(usageSimulation.totals.curtailedKwh)} kWh/year`} helpText={systemLimits.exportMode === 'zero-export' ? 'Zero-export surplus and inverter clipping' : 'Surplus after export and charging'} />
           <MetricCard label="SOC range" value={`${usageSimulation.totals.minSocPercent.toFixed(0)}-${usageSimulation.totals.maxSocPercent.toFixed(0)}%`} helpText={`Planning reserve ${systemLimits.batteryReservePercent}%`} />
         </div>
         <div className="usage-flow-grid">
-          <span><strong>{formatNumber(usageSimulation.totals.directSolarKwh)} kWh</strong> direct to house</span>
-          <span><strong>{formatNumber(usageSimulation.totals.batteryChargeKwh)} kWh</strong> charged into battery</span>
-          <span><strong>{formatNumber(usageSimulation.totals.batteryDischargeKwh)} kWh</strong> served from battery</span>
-          <span><strong>{formatNumber(usageSimulation.totals.gridImportKwh)} kWh</strong> grid import for idle load</span>
+          <span><strong>{formatNumber(usageSimulation.totals.directSolarKwh)} kWh</strong> PV used immediately by house load</span>
+          <span><strong>{formatNumber(usageSimulation.totals.batteryChargeKwh)} kWh</strong> PV accepted by the battery</span>
+          <span><strong>{formatNumber(usageSimulation.totals.batteryDischargeKwh)} kWh</strong> load later served from battery</span>
+          <span><strong>{formatNumber(usageSimulation.totals.gridImportKwh)} kWh</strong> load imported from grid</span>
         </div>
         <ResponsiveContainer width="100%" height={300}>
           <ComposedChart data={usageChartData}>

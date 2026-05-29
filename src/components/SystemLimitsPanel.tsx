@@ -22,7 +22,7 @@ export function SystemLimitsPanel({ systemLimits, onChange }: SystemLimitsPanelP
       <div className="section-heading">
         <div>
           <h2>System limits</h2>
-          <p>These limits are used later to estimate usable solar, battery charging, grid import and curtailed energy.</p>
+          <p>Physical inverter, battery and export limits used by the usage model.</p>
         </div>
         <div className="limit-chip">
           <span>Battery charge ceiling</span>
@@ -32,39 +32,39 @@ export function SystemLimitsPanel({ systemLimits, onChange }: SystemLimitsPanelP
 
       <div className="input-grid">
         <label>
-          Inverter max kW
+          Inverter max AC output (kW)
           <input type="number" min="0" step="0.1" value={systemLimits.inverterMaxKw} onChange={(event) => updateField('inverterMaxKw', Number(event.target.value))} />
         </label>
         <label>
-          Battery capacity kWh
+          Battery nominal capacity (kWh)
           <input type="number" min="0" step="0.1" value={systemLimits.batteryCapacityKwh} onChange={(event) => updateField('batteryCapacityKwh', Number(event.target.value))} />
         </label>
         <label>
-          Reserve %
+          Normal reserve floor (% SOC)
           <input type="number" min="0" max="100" value={systemLimits.batteryReservePercent} onChange={(event) => updateField('batteryReservePercent', Number(event.target.value))} />
         </label>
         <label>
-          Shutdown floor %
+          Battery shutoff floor (% SOC)
           <input type="number" min="0" max="100" value={systemLimits.batteryShutdownPercent} onChange={(event) => updateField('batteryShutdownPercent', Number(event.target.value))} />
         </label>
         <label>
-          Charge amps total
+          Max battery charge current (A total)
           <input type="number" min="0" step="1" value={systemLimits.batteryChargeCurrentAmps} onChange={(event) => updateField('batteryChargeCurrentAmps', Number(event.target.value))} />
         </label>
         <label>
-          Battery voltage
+          Battery nominal voltage (V)
           <input type="number" min="0" step="1" value={systemLimits.batteryNominalVoltage} onChange={(event) => updateField('batteryNominalVoltage', Number(event.target.value))} />
         </label>
         <label>
-          Idle load W
+          Base house load (W)
           <input type="number" min="0" step="10" value={systemLimits.idleLoadWatts} onChange={(event) => updateField('idleLoadWatts', Number(event.target.value))} />
         </label>
         <label>
-          Starting SOC %
+          Starting battery SOC (%)
           <input type="number" min="0" max="100" value={systemLimits.startingBatterySocPercent} onChange={(event) => updateField('startingBatterySocPercent', Number(event.target.value))} />
         </label>
         <label>
-          Export mode
+          Export policy
           <select value={systemLimits.exportMode} onChange={(event) => updateField('exportMode', event.target.value)}>
             <option value="zero-export">Zero export</option>
             <option value="export-limit">Export limit</option>
@@ -72,7 +72,7 @@ export function SystemLimitsPanel({ systemLimits, onChange }: SystemLimitsPanelP
           </select>
         </label>
         <label>
-          Export limit kW
+          Max export power (kW)
           <input
             type="number"
             min="0"
@@ -85,9 +85,9 @@ export function SystemLimitsPanel({ systemLimits, onChange }: SystemLimitsPanelP
       </div>
 
       <div className="limit-summary-grid">
-        <span><strong>{usableBatteryKwh.toFixed(1)} kWh</strong> usable above reserve</span>
-        <span><strong>{idleUsableSolarKw.toFixed(2)} kW</strong> usable at idle while charging</span>
-        <span><strong>{systemLimits.exportMode === 'zero-export' ? 'Zero export' : 'Export enabled'}</strong> export policy</span>
+        <span><strong>{usableBatteryKwh.toFixed(1)} kWh</strong> usable battery capacity above reserve</span>
+        <span><strong>{idleUsableSolarKw.toFixed(2)} kW</strong> PV usable at base load while charging</span>
+        <span><strong>{systemLimits.exportMode === 'zero-export' ? 'Zero export' : 'Export enabled'}</strong> selected export policy</span>
       </div>
     </section>
   );

@@ -74,6 +74,7 @@ p {
 .usage-card,
 .forecast-card,
 .economics-card,
+.observed-card,
 .metric-card,
 .notice-card,
 .period-card,
@@ -208,6 +209,7 @@ p {
 .usage-card,
 .forecast-card,
 .economics-card,
+.observed-card,
 .empty-state,
 .error-box {
   padding: 18px;
@@ -534,6 +536,12 @@ select:focus {
   margin-top: 18px;
 }
 
+.observed-card {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
 .usage-flow-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -628,6 +636,50 @@ select:focus {
 
 .export-payback-box span {
   color: #5f6f85;
+}
+
+.observed-table {
+  display: grid;
+  grid-template-columns: 0.7fr repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: center;
+}
+
+.observed-table > span {
+  color: #5f6f85;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.calibration-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.calibration-summary-grid span {
+  border-radius: 12px;
+  border: 1px solid #e5ebf4;
+  background: #f9fbff;
+  color: #5f6f85;
+  padding: 10px;
+}
+
+.calibration-summary-grid strong {
+  display: block;
+  color: #172033;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .period-card {
@@ -745,6 +797,8 @@ select:focus {
   .forecast-grid,
   .forecast-values,
   .export-payback-box,
+  .observed-table,
+  .calibration-summary-grid,
   .limit-summary-grid,
   .usage-flow-grid,
   .string-editor-header,

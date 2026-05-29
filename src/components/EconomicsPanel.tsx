@@ -32,7 +32,7 @@ export function EconomicsPanel({ result, systemLimits, economicAssumptions, onCh
       <div className="section-heading">
         <div>
           <h2>Economics</h2>
-          <p>Estimate avoided import cost, possible export credit and rough payback using the current usage-limit simulation.</p>
+          <p>Estimate avoided import cost, optional export credit and rough payback using the current usage-limit simulation.</p>
         </div>
       </div>
 
@@ -46,32 +46,32 @@ export function EconomicsPanel({ result, systemLimits, economicAssumptions, onCh
           <input type="number" min="0" max="100" value={economicAssumptions.exportCreditPercent} onChange={(event) => updateField('exportCreditPercent', Number(event.target.value))} />
         </label>
         <label>
-          Export enablement cost R
+          Extra export setup cost (R)
           <input type="number" min="0" step="1000" value={economicAssumptions.exportEnablementCostRand} onChange={(event) => updateField('exportEnablementCostRand', Number(event.target.value))} />
         </label>
         <label>
-          Total system cost R
+          Installed system cost, excluding export setup (R)
           <input type="number" min="0" step="1000" value={economicAssumptions.systemCostRand} onChange={(event) => updateField('systemCostRand', Number(event.target.value))} />
         </label>
       </div>
 
       <div className="metric-grid">
-        <MetricCard label="Self-consumed value" value={formatCurrency(selfConsumptionSavings)} helpText={`${formatNumber(selfConsumedKwh)} kWh at R${economicAssumptions.importTariffRandPerKwh.toFixed(2)}/kWh`} />
-        <MetricCard label="Export revenue" value={formatCurrency(exportRevenue)} helpText={`${formatNumber(usage.totals.exportedKwh)} kWh at R${exportRate.toFixed(2)}/kWh`} />
-        <MetricCard label="Annual benefit" value={formatCurrency(annualBenefit)} helpText="Self-consumption plus export credit" />
-        <MetricCard label="System payback" value={systemPaybackYears > 0 ? `${systemPaybackYears.toFixed(1)} years` : 'Add cost'} helpText="Uses total system cost input" />
+        <MetricCard label="Avoided grid import value" value={formatCurrency(selfConsumptionSavings)} helpText={`${formatNumber(selfConsumedKwh)} kWh self-consumed at R${economicAssumptions.importTariffRandPerKwh.toFixed(2)}/kWh`} />
+        <MetricCard label="Actual export credit" value={formatCurrency(exportRevenue)} helpText={`${formatNumber(usage.totals.exportedKwh)} kWh exported at R${exportRate.toFixed(2)}/kWh`} />
+        <MetricCard label="Annual value in current mode" value={formatCurrency(annualBenefit)} helpText="Avoided import plus actual export credit" />
+        <MetricCard label="Installed system payback" value={systemPaybackYears > 0 ? `${systemPaybackYears.toFixed(1)} years` : 'Add system cost'} helpText="Does not include extra export setup cost" />
       </div>
 
       <div className="export-payback-box">
         <div>
           <strong>Export enablement check</strong>
           <span>
-            Current curtailment could be worth {formatCurrency(potentialExportRevenue)} per year at the configured export credit.
+            If export became available, current unused PV could be worth about {formatCurrency(potentialExportRevenue)} per year at the configured export credit.
           </span>
         </div>
         <div>
           <strong>{exportPaybackYears > 0 ? `${exportPaybackYears.toFixed(1)} years` : 'No payback'}</strong>
-          <span>Estimated payback on {formatCurrency(economicAssumptions.exportEnablementCostRand)} export enablement cost.</span>
+          <span>Estimated payback on the separate {formatCurrency(economicAssumptions.exportEnablementCostRand)} export setup cost.</span>
         </div>
       </div>
     </section>

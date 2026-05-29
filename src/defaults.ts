@@ -1,4 +1,4 @@
-import { EconomicAssumptions, PVStringConfig, Site, SystemLimits } from './types';
+import { EconomicAssumptions, ObservedAnnualStats, PVStringConfig, Site, SystemLimits } from './types';
 
 export const DEFAULT_SITE: Site = {
   latitude: -33.9249,
@@ -48,3 +48,20 @@ export const DEFAULT_ECONOMIC_ASSUMPTIONS: EconomicAssumptions = {
   exportEnablementCostRand: 60000,
   systemCostRand: 0
 };
+
+export const DEFAULT_OBSERVED_STATS: ObservedAnnualStats[] = [
+  {
+    id: 'observed-2024',
+    year: 2024,
+    pvGeneratedKwh: 0,
+    gridImportKwh: 0,
+    batteryThroughputKwh: 0
+  },
+  {
+    id: 'observed-2025',
+    year: 2025,
+    pvGeneratedKwh: 0,
+    gridImportKwh: 0,
+    batteryThroughputKwh: 0
+  }
+];

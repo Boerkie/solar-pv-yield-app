@@ -1,5 +1,5 @@
-import { DEFAULT_ECONOMIC_ASSUMPTIONS, DEFAULT_SYSTEM_LIMITS } from '../defaults';
-import { EconomicAssumptions, PVStringConfig, Site, SystemLimits } from '../types';
+import { DEFAULT_ECONOMIC_ASSUMPTIONS, DEFAULT_OBSERVED_STATS, DEFAULT_SYSTEM_LIMITS } from '../defaults';
+import { EconomicAssumptions, ObservedAnnualStats, PVStringConfig, Site, SystemLimits } from '../types';
 
 const STORAGE_KEY = 'solar-pv-yield-app:setup:v1';
 
@@ -9,6 +9,7 @@ export type SavedSetup = {
   mapScrollLocked: boolean;
   systemLimits: SystemLimits;
   economicAssumptions: EconomicAssumptions;
+  observedStats: ObservedAnnualStats[];
 };
 
 export function loadSavedSetup(): SavedSetup | null {
@@ -34,11 +35,21 @@ export function loadSavedSetup(): SavedSetup | null {
       strings: parsedValue.strings.filter(isPvString),
       mapScrollLocked: parsedValue.mapScrollLocked !== false,
       systemLimits: mergeSystemLimits(parsedValue.systemLimits),
-      economicAssumptions: mergeEconomicAssumptions(parsedValue.economicAssumptions)
+      economicAssumptions: mergeEconomicAssumptions(parsedValue.economicAssumptions),
+      observedStats: mergeObservedStats(parsedValue.observedStats)
     };
   } catch {
     return null;
   }
+}
+
+function mergeObservedStats(value: unknown): ObservedAnnualStats[] {
+  if (!Array.isArray(value)) {
+    return DEFAULT_OBSERVED_STATS;
+  }
+
+  const observedStats = value.filter(isObservedAnnualStats);
+  return observedStats.length > 0 ? observedStats : DEFAULT_OBSERVED_STATS;
 }
 
 function mergeEconomicAssumptions(value: unknown): EconomicAssumptions {
@@ -110,6 +121,15 @@ function isPvString(value: unknown): value is PVStringConfig {
     && Number.isFinite(pvString.tiltDegrees)
     && Number.isFinite(pvString.azimuthDegrees)
     && Number.isFinite(pvString.lossPercent);
+}
+
+function isObservedAnnualStats(value: unknown): value is ObservedAnnualStats {
+  const observedStats = value as ObservedAnnualStats;
+  return typeof observedStats?.id === 'string'
+    && Number.isFinite(observedStats.year)
+    && Number.isFinite(observedStats.pvGeneratedKwh)
+    && Number.isFinite(observedStats.gridImportKwh)
+    && Number.isFinite(observedStats.batteryThroughputKwh);
 }
 
 function finiteOrDefault(value: unknown, defaultValue: number) {
