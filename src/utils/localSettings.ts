@@ -1,5 +1,5 @@
-import { DEFAULT_SYSTEM_LIMITS } from '../defaults';
-import { PVStringConfig, Site, SystemLimits } from '../types';
+import { DEFAULT_ECONOMIC_ASSUMPTIONS, DEFAULT_SYSTEM_LIMITS } from '../defaults';
+import { EconomicAssumptions, PVStringConfig, Site, SystemLimits } from '../types';
 
 const STORAGE_KEY = 'solar-pv-yield-app:setup:v1';
 
@@ -8,6 +8,7 @@ export type SavedSetup = {
   strings: PVStringConfig[];
   mapScrollLocked: boolean;
   systemLimits: SystemLimits;
+  economicAssumptions: EconomicAssumptions;
 };
 
 export function loadSavedSetup(): SavedSetup | null {
@@ -32,11 +33,27 @@ export function loadSavedSetup(): SavedSetup | null {
       site: parsedValue.site,
       strings: parsedValue.strings.filter(isPvString),
       mapScrollLocked: parsedValue.mapScrollLocked !== false,
-      systemLimits: mergeSystemLimits(parsedValue.systemLimits)
+      systemLimits: mergeSystemLimits(parsedValue.systemLimits),
+      economicAssumptions: mergeEconomicAssumptions(parsedValue.economicAssumptions)
     };
   } catch {
     return null;
   }
+}
+
+function mergeEconomicAssumptions(value: unknown): EconomicAssumptions {
+  const economicAssumptions = value as Partial<EconomicAssumptions>;
+
+  if (!economicAssumptions || typeof economicAssumptions !== 'object') {
+    return DEFAULT_ECONOMIC_ASSUMPTIONS;
+  }
+
+  return {
+    importTariffRandPerKwh: finiteOrDefault(economicAssumptions.importTariffRandPerKwh, DEFAULT_ECONOMIC_ASSUMPTIONS.importTariffRandPerKwh),
+    exportCreditPercent: finiteOrDefault(economicAssumptions.exportCreditPercent, DEFAULT_ECONOMIC_ASSUMPTIONS.exportCreditPercent),
+    exportEnablementCostRand: finiteOrDefault(economicAssumptions.exportEnablementCostRand, DEFAULT_ECONOMIC_ASSUMPTIONS.exportEnablementCostRand),
+    systemCostRand: finiteOrDefault(economicAssumptions.systemCostRand, DEFAULT_ECONOMIC_ASSUMPTIONS.systemCostRand)
+  };
 }
 
 function mergeSystemLimits(value: unknown): SystemLimits {

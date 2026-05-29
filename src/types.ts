@@ -41,6 +41,13 @@ export type SystemLimits = {
   startingBatterySocPercent: number;
 };
 
+export type EconomicAssumptions = {
+  importTariffRandPerKwh: number;
+  exportCreditPercent: number;
+  exportEnablementCostRand: number;
+  systemCostRand: number;
+};
+
 export type SimulationString = PVStringConfig & {
   annualTotalKwh: number;
 };

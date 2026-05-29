@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Dashboard } from './components/Dashboard';
+import { EconomicsPanel } from './components/EconomicsPanel';
 import { ForecastPanel } from './components/ForecastPanel';
 import { SiteMap } from './components/SiteMap';
 import { StringEditor } from './components/StringEditor';
 import { SystemLimitsPanel } from './components/SystemLimitsPanel';
-import { DEFAULT_SITE, DEFAULT_STRINGS, DEFAULT_SYSTEM_LIMITS } from './defaults';
-import { ForecastResult, PVStringConfig, SimulationResult, Site, SystemLimits } from './types';
+import { DEFAULT_ECONOMIC_ASSUMPTIONS, DEFAULT_SITE, DEFAULT_STRINGS, DEFAULT_SYSTEM_LIMITS } from './defaults';
+import { EconomicAssumptions, ForecastResult, PVStringConfig, SimulationResult, Site, SystemLimits } from './types';
 import { calculateDestinationPoint, calculateDistanceMetres } from './utils/geo';
 import { clearSavedSetup, loadSavedSetup, saveSetup } from './utils/localSettings';
 import './styles.css';
@@ -15,6 +16,7 @@ function App() {
   const [site, setSite] = useState(savedSetup?.site ?? DEFAULT_SITE);
   const [strings, setStrings] = useState(savedSetup?.strings ?? DEFAULT_STRINGS);
   const [systemLimits, setSystemLimits] = useState(savedSetup?.systemLimits ?? DEFAULT_SYSTEM_LIMITS);
+  const [economicAssumptions, setEconomicAssumptions] = useState<EconomicAssumptions>(savedSetup?.economicAssumptions ?? DEFAULT_ECONOMIC_ASSUMPTIONS);
   const [activeDrawStringId, setActiveDrawStringId] = useState<string | undefined>();
   const [mapScrollLocked, setMapScrollLocked] = useState(savedSetup?.mapScrollLocked ?? true);
   const [result, setResult] = useState<SimulationResult | null>(null);
@@ -28,8 +30,8 @@ function App() {
   const warnings = useMemo(() => buildWarnings(site, strings, systemLimits), [site, strings, systemLimits]);
 
   useEffect(() => {
-    saveSetup({ site, strings, mapScrollLocked, systemLimits });
-  }, [mapScrollLocked, site, strings, systemLimits]);
+    saveSetup({ site, strings, mapScrollLocked, systemLimits, economicAssumptions });
+  }, [economicAssumptions, mapScrollLocked, site, strings, systemLimits]);
 
   function handleSiteChange(nextSite: Site) {
     const nextStart = { lat: nextSite.latitude, lng: nextSite.longitude };
@@ -98,6 +100,7 @@ function App() {
     setSite(DEFAULT_SITE);
     setStrings(DEFAULT_STRINGS);
     setSystemLimits(DEFAULT_SYSTEM_LIMITS);
+    setEconomicAssumptions(DEFAULT_ECONOMIC_ASSUMPTIONS);
     setMapScrollLocked(true);
     setActiveDrawStringId(undefined);
     setResult(null);
@@ -245,6 +248,12 @@ function App() {
             isLoading={isForecastLoading}
             error={forecastError}
             onLoad={loadForecast}
+          />
+          <EconomicsPanel
+            result={result}
+            systemLimits={systemLimits}
+            economicAssumptions={economicAssumptions}
+            onChange={setEconomicAssumptions}
           />
         </>
       ) : <EmptyState />}

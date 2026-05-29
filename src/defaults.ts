@@ -1,4 +1,4 @@
-import { PVStringConfig, Site, SystemLimits } from './types';
+import { EconomicAssumptions, PVStringConfig, Site, SystemLimits } from './types';
 
 export const DEFAULT_SITE: Site = {
   latitude: -33.9249,
@@ -40,4 +40,11 @@ export const DEFAULT_SYSTEM_LIMITS: SystemLimits = {
   exportMode: 'zero-export',
   exportLimitKw: 0,
   startingBatterySocPercent: 40
+};
+
+export const DEFAULT_ECONOMIC_ASSUMPTIONS: EconomicAssumptions = {
+  importTariffRandPerKwh: 4.5,
+  exportCreditPercent: 33,
+  exportEnablementCostRand: 60000,
+  systemCostRand: 0
 };

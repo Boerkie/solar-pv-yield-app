@@ -73,6 +73,7 @@ p {
 .chart-card,
 .usage-card,
 .forecast-card,
+.economics-card,
 .metric-card,
 .notice-card,
 .period-card,
@@ -206,6 +207,7 @@ p {
 .chart-card,
 .usage-card,
 .forecast-card,
+.economics-card,
 .empty-state,
 .error-box {
   padding: 18px;
@@ -526,6 +528,12 @@ select:focus {
   margin-top: 18px;
 }
 
+.economics-card {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
 .usage-flow-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -596,6 +604,30 @@ select:focus {
   background: #f9fbff;
   color: #5f6f85;
   padding: 16px;
+}
+
+.economics-inputs {
+  margin-top: 0;
+}
+
+.export-payback-box {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  align-items: center;
+  border-radius: 14px;
+  border: 1px solid #e5ebf4;
+  background: #f9fbff;
+  padding: 14px;
+}
+
+.export-payback-box strong,
+.export-payback-box span {
+  display: block;
+}
+
+.export-payback-box span {
+  color: #5f6f85;
 }
 
 .period-card {
@@ -712,6 +744,7 @@ select:focus {
   .chart-grid.two-columns,
   .forecast-grid,
   .forecast-values,
+  .export-payback-box,
   .limit-summary-grid,
   .usage-flow-grid,
   .string-editor-header,
