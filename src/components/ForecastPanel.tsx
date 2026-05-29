@@ -14,18 +14,29 @@ export function ForecastPanel({ result, forecast, isLoading, error, onLoad }: Fo
     const date = new Date(`${day.date}T12:00:00`);
     const normDay = result.daily.find((dailyRow) => dailyRow.month === date.getMonth() + 1 && dailyRow.day === date.getDate());
     const normKwh = normDay?.combinedKwh ?? 0;
-    const weatherFactor = calculateWeatherFactor(day.averageCloudCoverPercent, day.peakShortwaveWm2);
+    const cloudCover = finiteOrDefault(day.averageCloudCoverPercent, 0);
+    const peakShortwave = finiteOrDefault(day.peakShortwaveWm2, 0);
+    const weatherFactor = calculateWeatherFactor(cloudCover, peakShortwave);
     const forecastKwh = normKwh * weatherFactor;
     const differencePercent = normKwh > 0 ? ((forecastKwh - normKwh) / normKwh) * 100 : 0;
 
     return {
       ...day,
       label: date.toLocaleDateString('en-ZA', { weekday: 'short', day: 'numeric', month: 'short' }),
+      averageCloudCoverPercent: cloudCover,
+      peakShortwaveWm2: peakShortwave,
       forecastKwh,
       normKwh,
       differencePercent
     };
   }) ?? [];
+  const forecastLatitude = finiteOrDefault(forecast?.latitude, result.site.latitude);
+  const forecastLongitude = finiteOrDefault(forecast?.longitude, result.site.longitude);
+  const forecastLocationLabel = forecast?.locationLabel || result.site.label || `${forecastLatitude.toFixed(4)}, ${forecastLongitude.toFixed(4)}`;
+  const generatedAt = forecast?.generatedAt ? new Date(forecast.generatedAt) : null;
+  const generatedAtLabel = generatedAt && Number.isFinite(generatedAt.getTime())
+    ? generatedAt.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })
+    : 'Unknown';
 
   return (
     <section className="forecast-card">
@@ -44,10 +55,10 @@ export function ForecastPanel({ result, forecast, isLoading, error, onLoad }: Fo
       {forecast ? (
         <>
           <div className="metric-grid">
-            <MetricCard label="Forecast location" value={forecast.locationLabel} helpText={`${forecast.latitude.toFixed(4)}, ${forecast.longitude.toFixed(4)}`} />
+            <MetricCard label="Forecast location" value={forecastLocationLabel} helpText={`${forecastLatitude.toFixed(4)}, ${forecastLongitude.toFixed(4)}`} />
             <MetricCard label="Forecast provider" value={forecast.provider} helpText={forecast.timezone} />
             <MetricCard label="Estimate method" value="PVGIS norm adjusted" helpText="Cloud cover and peak radiation factor" />
-            <MetricCard label="Updated" value={new Date(forecast.generatedAt).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })} helpText="Local API response time" />
+            <MetricCard label="Updated" value={generatedAtLabel} helpText="Local API response time" />
           </div>
 
           <div className="forecast-grid">
@@ -79,4 +90,9 @@ function calculateWeatherFactor(averageCloudCoverPercent: number, peakShortwaveW
   const cloudFactor = 1 - (Math.min(Math.max(averageCloudCoverPercent, 0), 100) / 100) * 0.65;
   const peakFactor = Math.min(Math.max(peakShortwaveWm2 / 900, 0.35), 1.05);
   return Math.min(Math.max((cloudFactor * 0.75) + (peakFactor * 0.25), 0.3), 1.1);
+}
+
+function finiteOrDefault(value: unknown, defaultValue: number) {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? numericValue : defaultValue;
 }
