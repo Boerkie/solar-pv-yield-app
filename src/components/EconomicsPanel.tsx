@@ -1,16 +1,17 @@
-import { EconomicAssumptions, SimulationResult, SystemLimits } from '../types';
+import { EconomicAssumptions, LoadProfile, SimulationResult, SystemLimits } from '../types';
 import { simulateUsage } from '../utils/usageSimulation';
 import { MetricCard } from './MetricCard';
 
 type EconomicsPanelProps = {
   result: SimulationResult;
   systemLimits: SystemLimits;
+  loadProfile: LoadProfile;
   economicAssumptions: EconomicAssumptions;
   onChange: (economicAssumptions: EconomicAssumptions) => void;
 };
 
-export function EconomicsPanel({ result, systemLimits, economicAssumptions, onChange }: EconomicsPanelProps) {
-  const usage = simulateUsage(result.hourlyByDay, systemLimits);
+export function EconomicsPanel({ result, systemLimits, loadProfile, economicAssumptions, onChange }: EconomicsPanelProps) {
+  const usage = simulateUsage(result.hourlyByDay, systemLimits, loadProfile);
   const exportRate = economicAssumptions.importTariffRandPerKwh * (economicAssumptions.exportCreditPercent / 100);
   const selfConsumedKwh = usage.totals.directSolarKwh + usage.totals.batteryDischargeKwh;
   const selfConsumptionSavings = selfConsumedKwh * economicAssumptions.importTariffRandPerKwh;

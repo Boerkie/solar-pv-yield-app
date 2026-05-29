@@ -1,10 +1,10 @@
-import { HourlyAggregate, MonthlyUsageAggregate, SystemLimits, UsageSimulationResult } from '../types';
+import { ApplianceLoad, HourlyAggregate, LoadProfile, MonthlyUsageAggregate, SystemLimits, UsageSimulationResult } from '../types';
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export function simulateUsage(hourlyRows: HourlyAggregate[], systemLimits: SystemLimits): UsageSimulationResult {
+export function simulateUsage(hourlyRows: HourlyAggregate[], systemLimits: SystemLimits, loadProfile?: LoadProfile): UsageSimulationResult {
   const batteryChargeLimitKw = calculateBatteryChargeLimitKw(systemLimits);
-  const idleLoadKw = systemLimits.idleLoadWatts / 1000;
+  const baseLoadKw = (loadProfile?.dayBaseWatts ?? systemLimits.idleLoadWatts) / 1000;
   const reserveKwh = systemLimits.batteryCapacityKwh * clamp(systemLimits.batteryReservePercent, 0, 100) / 100;
   const fullBatteryKwh = Math.max(systemLimits.batteryCapacityKwh, 0);
   const usableBatteryKwh = Math.max(fullBatteryKwh - reserveKwh, 0);
@@ -19,7 +19,7 @@ export function simulateUsage(hourlyRows: HourlyAggregate[], systemLimits: Syste
     const rawPvKwh = Math.max(hourlyRow.combinedKwh, 0);
     const pvAfterInverterKwh = Math.min(rawPvKwh, Math.max(systemLimits.inverterMaxKw, 0));
     const inverterClippedKwh = Math.max(rawPvKwh - pvAfterInverterKwh, 0);
-    const loadKwh = idleLoadKw;
+    const loadKwh = calculateHourlyLoadKwh(hourlyRow, systemLimits, loadProfile);
     const directSolarKwh = Math.min(pvAfterInverterKwh, loadKwh);
     const remainingLoadKwh = Math.max(loadKwh - directSolarKwh, 0);
     const batteryAvailableKwh = Math.max(batteryKwh - reserveKwh, 0);
@@ -64,7 +64,7 @@ export function simulateUsage(hourlyRows: HourlyAggregate[], systemLimits: Syste
 
   return {
     batteryChargeLimitKw,
-    idleSolarUseCeilingKw: batteryChargeLimitKw + idleLoadKw,
+    idleSolarUseCeilingKw: batteryChargeLimitKw + baseLoadKw,
     usableBatteryKwh: round2(usableBatteryKwh),
     totals: {
       ...roundTotals(totals),
@@ -74,6 +74,17 @@ export function simulateUsage(hourlyRows: HourlyAggregate[], systemLimits: Syste
     },
     monthly
   };
+}
+
+export function calculateAnnualLoadKwh(loadProfile: LoadProfile, fallbackBaseWatts: number) {
+  return Array.from({ length: 12 }, (_, index) => index + 1).reduce((total, month) => {
+    const days = daysInMonth(month);
+
+    return total + Array.from({ length: days }, (_, dayIndex) => dayIndex + 1).reduce((monthTotal, day) => {
+      return monthTotal + Array.from({ length: 24 }, (_, hour) => calculateHourlyLoadKwh({ month, day, hour } as HourlyAggregate, { idleLoadWatts: fallbackBaseWatts } as SystemLimits, loadProfile))
+        .reduce((hourTotal, value) => hourTotal + value, 0);
+    }, 0);
+  }, 0);
 }
 
 export function calculateBatteryChargeLimitKw(systemLimits: SystemLimits) {
@@ -109,6 +120,51 @@ function calculateExportedKwh(exportableKwh: number, systemLimits: SystemLimits)
   }
 
   return exportableKwh;
+}
+
+function calculateHourlyLoadKwh(hourlyRow: HourlyAggregate, systemLimits: SystemLimits, loadProfile?: LoadProfile) {
+  if (!loadProfile) {
+    return Math.max(systemLimits.idleLoadWatts, 0) / 1000;
+  }
+
+  const baseWatts = hourlyRow.hour >= 7 && hourlyRow.hour < 17
+    ? loadProfile.dayBaseWatts
+    : hourlyRow.hour >= 17 && hourlyRow.hour < 22
+      ? loadProfile.eveningBaseWatts
+      : loadProfile.nightBaseWatts;
+
+  const applianceKw = loadProfile.appliances
+    .filter((appliance) => appliance.enabled && appliance.activeMonths.includes(hourlyRow.month))
+    .reduce((total, appliance) => total + calculateApplianceHourKw(appliance, hourlyRow), 0);
+
+  return Math.max(baseWatts, 0) / 1000 + applianceKw;
+}
+
+function calculateApplianceHourKw(appliance: ApplianceLoad, hourlyRow: Pick<HourlyAggregate, 'month' | 'day' | 'hour'>) {
+  if (!isScheduledRunDay(appliance, hourlyRow.month, hourlyRow.day ?? 1)) {
+    return 0;
+  }
+
+  const startHour = clamp(Math.floor(appliance.startHour), 0, 23);
+  const endHour = startHour + Math.max(appliance.hoursPerRun, 0);
+  const hourStart = hourlyRow.hour;
+  const hourEnd = hourlyRow.hour + 1;
+  const overlapHours = Math.max(0, Math.min(hourEnd, endHour) - Math.max(hourStart, startHour));
+
+  return appliance.powerKw * overlapHours;
+}
+
+function isScheduledRunDay(appliance: ApplianceLoad, month: number, day: number) {
+  const days = daysInMonth(month);
+  const intervalDays = 7 / Math.max(appliance.runsPerWeek, 0.1);
+  const runCountBeforeDay = Math.floor((day - 1) / intervalDays);
+  const runCountAtDay = Math.floor(day / intervalDays);
+
+  return runCountAtDay > runCountBeforeDay && day <= days;
+}
+
+function daysInMonth(month: number) {
+  return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1] ?? 30;
 }
 
 function createEmptyTotals() {

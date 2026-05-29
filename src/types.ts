@@ -56,6 +56,24 @@ export type ObservedAnnualStats = {
   batteryThroughputKwh: number;
 };
 
+export type ApplianceLoad = {
+  id: string;
+  name: string;
+  enabled: boolean;
+  powerKw: number;
+  hoursPerRun: number;
+  runsPerWeek: number;
+  startHour: number;
+  activeMonths: number[];
+};
+
+export type LoadProfile = {
+  nightBaseWatts: number;
+  dayBaseWatts: number;
+  eveningBaseWatts: number;
+  appliances: ApplianceLoad[];
+};
+
 export type SimulationString = PVStringConfig & {
   annualTotalKwh: number;
 };

@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { EconomicsPanel } from './components/EconomicsPanel';
 import { ForecastPanel } from './components/ForecastPanel';
+import { LoadProfilePanel } from './components/LoadProfilePanel';
 import { ObservedStatsPanel } from './components/ObservedStatsPanel';
 import { SiteMap } from './components/SiteMap';
 import { StringEditor } from './components/StringEditor';
 import { SystemLimitsPanel } from './components/SystemLimitsPanel';
-import { DEFAULT_ECONOMIC_ASSUMPTIONS, DEFAULT_OBSERVED_STATS, DEFAULT_SITE, DEFAULT_STRINGS, DEFAULT_SYSTEM_LIMITS } from './defaults';
-import { EconomicAssumptions, ForecastResult, ObservedAnnualStats, PVStringConfig, SimulationResult, Site, SystemLimits } from './types';
+import { DEFAULT_ECONOMIC_ASSUMPTIONS, DEFAULT_LOAD_PROFILE, DEFAULT_OBSERVED_STATS, DEFAULT_SITE, DEFAULT_STRINGS, DEFAULT_SYSTEM_LIMITS } from './defaults';
+import { EconomicAssumptions, ForecastResult, LoadProfile, ObservedAnnualStats, PVStringConfig, SimulationResult, Site, SystemLimits } from './types';
 import { calculateDestinationPoint, calculateDistanceMetres } from './utils/geo';
 import { clearSavedSetup, loadSavedSetup, saveSetup } from './utils/localSettings';
 import './styles.css';
@@ -19,6 +20,7 @@ function App() {
   const [systemLimits, setSystemLimits] = useState(savedSetup?.systemLimits ?? DEFAULT_SYSTEM_LIMITS);
   const [economicAssumptions, setEconomicAssumptions] = useState<EconomicAssumptions>(savedSetup?.economicAssumptions ?? DEFAULT_ECONOMIC_ASSUMPTIONS);
   const [observedStats, setObservedStats] = useState<ObservedAnnualStats[]>(savedSetup?.observedStats ?? DEFAULT_OBSERVED_STATS);
+  const [loadProfile, setLoadProfile] = useState<LoadProfile>(savedSetup?.loadProfile ?? DEFAULT_LOAD_PROFILE);
   const [activeDrawStringId, setActiveDrawStringId] = useState<string | undefined>();
   const [mapScrollLocked, setMapScrollLocked] = useState(savedSetup?.mapScrollLocked ?? true);
   const [result, setResult] = useState<SimulationResult | null>(null);
@@ -32,8 +34,8 @@ function App() {
   const warnings = useMemo(() => buildWarnings(site, strings, systemLimits), [site, strings, systemLimits]);
 
   useEffect(() => {
-    saveSetup({ site, strings, mapScrollLocked, systemLimits, economicAssumptions, observedStats });
-  }, [economicAssumptions, mapScrollLocked, observedStats, site, strings, systemLimits]);
+    saveSetup({ site, strings, mapScrollLocked, systemLimits, economicAssumptions, observedStats, loadProfile });
+  }, [economicAssumptions, loadProfile, mapScrollLocked, observedStats, site, strings, systemLimits]);
 
   function handleSiteChange(nextSite: Site) {
     const nextStart = { lat: nextSite.latitude, lng: nextSite.longitude };
@@ -104,6 +106,7 @@ function App() {
     setSystemLimits(DEFAULT_SYSTEM_LIMITS);
     setEconomicAssumptions(DEFAULT_ECONOMIC_ASSUMPTIONS);
     setObservedStats(DEFAULT_OBSERVED_STATS);
+    setLoadProfile(DEFAULT_LOAD_PROFILE);
     setMapScrollLocked(true);
     setActiveDrawStringId(undefined);
     setResult(null);
@@ -175,6 +178,7 @@ function App() {
       </section>
 
       <SystemLimitsPanel systemLimits={systemLimits} onChange={setSystemLimits} />
+      <LoadProfilePanel loadProfile={loadProfile} fallbackBaseWatts={systemLimits.idleLoadWatts} onChange={setLoadProfile} />
 
       <section className="setup-grid">
         <div className="site-form card">
@@ -244,10 +248,11 @@ function App() {
       {error ? <div className="error-box">{error}</div> : null}
       {result ? (
         <>
-          <Dashboard result={result} systemLimits={systemLimits} />
+          <Dashboard result={result} systemLimits={systemLimits} loadProfile={loadProfile} />
           <ObservedStatsPanel
             result={result}
             systemLimits={systemLimits}
+            loadProfile={loadProfile}
             observedStats={observedStats}
             onChange={setObservedStats}
           />
@@ -261,6 +266,7 @@ function App() {
           <EconomicsPanel
             result={result}
             systemLimits={systemLimits}
+            loadProfile={loadProfile}
             economicAssumptions={economicAssumptions}
             onChange={setEconomicAssumptions}
           />

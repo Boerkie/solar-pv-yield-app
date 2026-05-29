@@ -1,5 +1,5 @@
-import { DEFAULT_ECONOMIC_ASSUMPTIONS, DEFAULT_OBSERVED_STATS, DEFAULT_SYSTEM_LIMITS } from '../defaults';
-import { EconomicAssumptions, ObservedAnnualStats, PVStringConfig, Site, SystemLimits } from '../types';
+import { DEFAULT_ECONOMIC_ASSUMPTIONS, DEFAULT_LOAD_PROFILE, DEFAULT_OBSERVED_STATS, DEFAULT_SYSTEM_LIMITS } from '../defaults';
+import { ApplianceLoad, EconomicAssumptions, LoadProfile, ObservedAnnualStats, PVStringConfig, Site, SystemLimits } from '../types';
 
 const STORAGE_KEY = 'solar-pv-yield-app:setup:v1';
 
@@ -10,6 +10,7 @@ export type SavedSetup = {
   systemLimits: SystemLimits;
   economicAssumptions: EconomicAssumptions;
   observedStats: ObservedAnnualStats[];
+  loadProfile: LoadProfile;
 };
 
 export function loadSavedSetup(): SavedSetup | null {
@@ -36,11 +37,31 @@ export function loadSavedSetup(): SavedSetup | null {
       mapScrollLocked: parsedValue.mapScrollLocked !== false,
       systemLimits: mergeSystemLimits(parsedValue.systemLimits),
       economicAssumptions: mergeEconomicAssumptions(parsedValue.economicAssumptions),
-      observedStats: mergeObservedStats(parsedValue.observedStats)
+      observedStats: mergeObservedStats(parsedValue.observedStats),
+      loadProfile: mergeLoadProfile(parsedValue.loadProfile)
     };
   } catch {
     return null;
   }
+}
+
+function mergeLoadProfile(value: unknown): LoadProfile {
+  const loadProfile = value as Partial<LoadProfile>;
+
+  if (!loadProfile || typeof loadProfile !== 'object') {
+    return DEFAULT_LOAD_PROFILE;
+  }
+
+  const appliances = Array.isArray(loadProfile.appliances)
+    ? loadProfile.appliances.filter(isApplianceLoad)
+    : DEFAULT_LOAD_PROFILE.appliances;
+
+  return {
+    nightBaseWatts: finiteOrDefault(loadProfile.nightBaseWatts, DEFAULT_LOAD_PROFILE.nightBaseWatts),
+    dayBaseWatts: finiteOrDefault(loadProfile.dayBaseWatts, DEFAULT_LOAD_PROFILE.dayBaseWatts),
+    eveningBaseWatts: finiteOrDefault(loadProfile.eveningBaseWatts, DEFAULT_LOAD_PROFILE.eveningBaseWatts),
+    appliances: appliances.length > 0 ? appliances : DEFAULT_LOAD_PROFILE.appliances
+  };
 }
 
 function mergeObservedStats(value: unknown): ObservedAnnualStats[] {
@@ -130,6 +151,18 @@ function isObservedAnnualStats(value: unknown): value is ObservedAnnualStats {
     && Number.isFinite(observedStats.pvGeneratedKwh)
     && Number.isFinite(observedStats.gridImportKwh)
     && Number.isFinite(observedStats.batteryThroughputKwh);
+}
+
+function isApplianceLoad(value: unknown): value is ApplianceLoad {
+  const appliance = value as ApplianceLoad;
+  return typeof appliance?.id === 'string'
+    && typeof appliance.name === 'string'
+    && typeof appliance.enabled === 'boolean'
+    && Number.isFinite(appliance.powerKw)
+    && Number.isFinite(appliance.hoursPerRun)
+    && Number.isFinite(appliance.runsPerWeek)
+    && Number.isFinite(appliance.startHour)
+    && Array.isArray(appliance.activeMonths);
 }
 
 function finiteOrDefault(value: unknown, defaultValue: number) {

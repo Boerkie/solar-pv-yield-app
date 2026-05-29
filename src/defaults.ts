@@ -1,4 +1,4 @@
-import { EconomicAssumptions, ObservedAnnualStats, PVStringConfig, Site, SystemLimits } from './types';
+import { EconomicAssumptions, LoadProfile, ObservedAnnualStats, PVStringConfig, Site, SystemLimits } from './types';
 
 export const DEFAULT_SITE: Site = {
   latitude: -33.9249,
@@ -65,3 +65,51 @@ export const DEFAULT_OBSERVED_STATS: ObservedAnnualStats[] = [
     batteryThroughputKwh: 0
   }
 ];
+
+export const DEFAULT_LOAD_PROFILE: LoadProfile = {
+  nightBaseWatts: 150,
+  dayBaseWatts: 450,
+  eveningBaseWatts: 650,
+  appliances: [
+    {
+      id: 'dishwasher',
+      name: 'Dishwasher',
+      enabled: true,
+      powerKw: 1.2,
+      hoursPerRun: 1.5,
+      runsPerWeek: 2,
+      startHour: 11,
+      activeMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    },
+    {
+      id: 'washing-machine',
+      name: 'Washing machine',
+      enabled: true,
+      powerKw: 0.6,
+      hoursPerRun: 1.5,
+      runsPerWeek: 3,
+      startHour: 10,
+      activeMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    },
+    {
+      id: 'dryer',
+      name: 'Dryer',
+      enabled: true,
+      powerKw: 2.4,
+      hoursPerRun: 1.5,
+      runsPerWeek: 2,
+      startHour: 12,
+      activeMonths: [5, 6, 7, 8]
+    },
+    {
+      id: 'aircon',
+      name: 'Aircon',
+      enabled: false,
+      powerKw: 1.6,
+      hoursPerRun: 5,
+      runsPerWeek: 5,
+      startHour: 11,
+      activeMonths: [12, 1, 2, 3]
+    }
+  ]
+};

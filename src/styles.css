@@ -75,6 +75,7 @@ p {
 .forecast-card,
 .economics-card,
 .observed-card,
+.load-profile-card,
 .metric-card,
 .notice-card,
 .period-card,
@@ -210,6 +211,7 @@ p {
 .forecast-card,
 .economics-card,
 .observed-card,
+.load-profile-card,
 .empty-state,
 .error-box {
   padding: 18px;
@@ -542,6 +544,98 @@ select:focus {
   margin-top: 18px;
 }
 
+.load-profile-card {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.load-summary-box {
+  border-radius: 12px;
+  border: 1px solid #e5ebf4;
+  background: #f9fbff;
+  color: #5f6f85;
+  padding: 10px;
+}
+
+.load-summary-box strong,
+.load-summary-box span {
+  display: block;
+}
+
+.load-summary-box strong {
+  color: #172033;
+}
+
+.appliance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.appliance-card {
+  display: grid;
+  gap: 12px;
+  border-radius: 14px;
+  border: 1px solid #dbe3ee;
+  background: #f9fbff;
+  padding: 14px;
+}
+
+.appliance-card.disabled {
+  opacity: 0.68;
+}
+
+.appliance-header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.checkbox-label input {
+  width: auto;
+}
+
+.appliance-name-input {
+  font-weight: 800;
+}
+
+.compact-grid {
+  margin-top: 0;
+}
+
+.month-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.month-toggle {
+  border: 1px solid #ccd6e3;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #49617d;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 7px 6px;
+}
+
+.month-toggle.active {
+  background: #172033;
+  border-color: #172033;
+  color: #ffffff;
+}
+
 .usage-flow-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -800,6 +894,7 @@ select:focus {
   .observed-table,
   .calibration-summary-grid,
   .limit-summary-grid,
+  .appliance-grid,
   .usage-flow-grid,
   .string-editor-header,
   .notice-card {
@@ -831,6 +926,14 @@ select:focus {
 
   .compass-card {
     grid-template-columns: 72px 1fr;
+  }
+
+  .month-toggle-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .appliance-header {
+    grid-template-columns: 1fr;
   }
 
   .remove-array-button {

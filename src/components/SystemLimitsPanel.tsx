@@ -56,7 +56,7 @@ export function SystemLimitsPanel({ systemLimits, onChange }: SystemLimitsPanelP
           <input type="number" min="0" step="1" value={systemLimits.batteryNominalVoltage} onChange={(event) => updateField('batteryNominalVoltage', Number(event.target.value))} />
         </label>
         <label>
-          Base house load (W)
+          Fallback minimum load (W)
           <input type="number" min="0" step="10" value={systemLimits.idleLoadWatts} onChange={(event) => updateField('idleLoadWatts', Number(event.target.value))} />
         </label>
         <label>

@@ -1,16 +1,17 @@
-import { ObservedAnnualStats, SimulationResult, SystemLimits } from '../types';
+import { LoadProfile, ObservedAnnualStats, SimulationResult, SystemLimits } from '../types';
 import { simulateUsage } from '../utils/usageSimulation';
 import { MetricCard } from './MetricCard';
 
 type ObservedStatsPanelProps = {
   result: SimulationResult;
   systemLimits: SystemLimits;
+  loadProfile: LoadProfile;
   observedStats: ObservedAnnualStats[];
   onChange: (observedStats: ObservedAnnualStats[]) => void;
 };
 
-export function ObservedStatsPanel({ result, systemLimits, observedStats, onChange }: ObservedStatsPanelProps) {
-  const usage = simulateUsage(result.hourlyByDay, systemLimits);
+export function ObservedStatsPanel({ result, systemLimits, loadProfile, observedStats, onChange }: ObservedStatsPanelProps) {
+  const usage = simulateUsage(result.hourlyByDay, systemLimits, loadProfile);
   const validRows = observedStats.filter((row) => row.pvGeneratedKwh > 0);
   const observedAverage = summariseObservedRows(validRows);
   const usageGeneratedKwh = usage.totals.directSolarKwh + usage.totals.batteryChargeKwh;

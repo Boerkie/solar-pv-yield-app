@@ -12,13 +12,14 @@ import {
   XAxis,
   YAxis
 } from 'recharts';
-import type { HourlyAggregate, SimulationResult, SystemLimits } from '../types';
+import type { HourlyAggregate, LoadProfile, SimulationResult, SystemLimits } from '../types';
 import { simulateUsage } from '../utils/usageSimulation';
 import { MetricCard } from './MetricCard';
 
 type DashboardProps = {
   result: SimulationResult;
   systemLimits: SystemLimits;
+  loadProfile: LoadProfile;
 };
 
 type PeriodType = 'day' | 'week' | 'month' | 'year';
@@ -86,7 +87,7 @@ const MONTH_OPTIONS = [
   { value: 12, label: 'December', shortLabel: 'Dec' }
 ];
 
-export function Dashboard({ result, systemLimits }: DashboardProps) {
+export function Dashboard({ result, systemLimits, loadProfile }: DashboardProps) {
   const [periodType, setPeriodType] = useState<PeriodType>('year');
   const [selectedMonth, setSelectedMonth] = useState(4);
   const [selectedWeek, setSelectedWeek] = useState(16);
@@ -120,7 +121,7 @@ export function Dashboard({ result, systemLimits }: DashboardProps) {
     label: monthRow.label,
     'Average kWh/day': monthRow.averageDailyKwh
   })), [result.monthly]);
-  const usageSimulation = useMemo(() => simulateUsage(result.hourlyByDay, systemLimits), [result.hourlyByDay, systemLimits]);
+  const usageSimulation = useMemo(() => simulateUsage(result.hourlyByDay, systemLimits, loadProfile), [loadProfile, result.hourlyByDay, systemLimits]);
   const usageChartData = useMemo(() => usageSimulation.monthly.map((monthRow) => ({
     label: monthRow.label,
     'Direct solar': monthRow.directSolarKwh,
@@ -187,7 +188,7 @@ export function Dashboard({ result, systemLimits }: DashboardProps) {
         </div>
         <div className="metric-grid">
           <MetricCard label="Max battery charging power" value={`${usageSimulation.batteryChargeLimitKw.toFixed(2)} kW`} helpText={`${systemLimits.batteryChargeCurrentAmps} A total at ${systemLimits.batteryNominalVoltage} V`} />
-          <MetricCard label="PV usable at base load" value={`${usageSimulation.idleSolarUseCeilingKw.toFixed(2)} kW`} helpText="Base load plus max battery charging power" />
+          <MetricCard label="PV usable at daytime base load" value={`${usageSimulation.idleSolarUseCeilingKw.toFixed(2)} kW`} helpText="Day base load plus max battery charging power" />
           <MetricCard label="Estimated unused PV" value={`${formatNumber(usageSimulation.totals.curtailedKwh)} kWh/year`} helpText={systemLimits.exportMode === 'zero-export' ? 'Zero-export surplus and inverter clipping' : 'Surplus after export and charging'} />
           <MetricCard label="SOC range" value={`${usageSimulation.totals.minSocPercent.toFixed(0)}-${usageSimulation.totals.maxSocPercent.toFixed(0)}%`} helpText={`Planning reserve ${systemLimits.batteryReservePercent}%`} />
         </div>
