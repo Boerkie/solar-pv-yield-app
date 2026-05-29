@@ -12,11 +12,13 @@ import {
   XAxis,
   YAxis
 } from 'recharts';
-import type { HourlyAggregate, SimulationResult } from '../types';
+import type { HourlyAggregate, SimulationResult, SystemLimits } from '../types';
+import { simulateUsage } from '../utils/usageSimulation';
 import { MetricCard } from './MetricCard';
 
 type DashboardProps = {
   result: SimulationResult;
+  systemLimits: SystemLimits;
 };
 
 type PeriodType = 'day' | 'week' | 'month' | 'year';
@@ -84,7 +86,7 @@ const MONTH_OPTIONS = [
   { value: 12, label: 'December', shortLabel: 'Dec' }
 ];
 
-export function Dashboard({ result }: DashboardProps) {
+export function Dashboard({ result, systemLimits }: DashboardProps) {
   const [periodType, setPeriodType] = useState<PeriodType>('year');
   const [selectedMonth, setSelectedMonth] = useState(4);
   const [selectedWeek, setSelectedWeek] = useState(16);
@@ -118,6 +120,15 @@ export function Dashboard({ result }: DashboardProps) {
     label: monthRow.label,
     'Average kWh/day': monthRow.averageDailyKwh
   })), [result.monthly]);
+  const usageSimulation = useMemo(() => simulateUsage(result.hourlyByDay, systemLimits), [result.hourlyByDay, systemLimits]);
+  const usageChartData = useMemo(() => usageSimulation.monthly.map((monthRow) => ({
+    label: monthRow.label,
+    'Direct solar': monthRow.directSolarKwh,
+    'Battery discharge': monthRow.batteryDischargeKwh,
+    'Grid import': monthRow.gridImportKwh,
+    'Curtailed': monthRow.curtailedKwh,
+    'Exported': monthRow.exportedKwh
+  })), [usageSimulation.monthly]);
 
   const selectedDay = Number(selectedDate.slice(8, 10));
   const selectedDateMonth = Number(selectedDate.slice(5, 7));
@@ -167,6 +178,39 @@ export function Dashboard({ result }: DashboardProps) {
         <MetricCard label="Expected annual yield" value={`${formatNumber(result.totals.annualKwh)} kWh/year`} helpText="Average of complete PVGIS years" />
         <MetricCard label="Average daily yield" value={`${result.totals.averageDailyKwh.toFixed(2)} kWh/day`} helpText="Annual estimate / 365" />
         <MetricCard label="Data provider" value={result.provider} helpText={result.cache?.hit ? 'Loaded from local API cache' : 'Fresh provider request'} />
+      </div>
+
+      <div className="usage-card">
+        <div className="chart-header">
+          <h2>Usage limits</h2>
+          <p>Hour-by-hour estimate with idle load, reserve SOC, battery charge limit and export policy applied to the PVGIS typical year.</p>
+        </div>
+        <div className="metric-grid">
+          <MetricCard label="Battery charge limit" value={`${usageSimulation.batteryChargeLimitKw.toFixed(2)} kW`} helpText={`${systemLimits.batteryChargeCurrentAmps} A total at ${systemLimits.batteryNominalVoltage} V`} />
+          <MetricCard label="Idle usable ceiling" value={`${usageSimulation.idleSolarUseCeilingKw.toFixed(2)} kW`} helpText="Battery charge limit plus idle load" />
+          <MetricCard label="Curtailed solar" value={`${formatNumber(usageSimulation.totals.curtailedKwh)} kWh/year`} helpText={systemLimits.exportMode === 'zero-export' ? 'Zero-export surplus and clipping' : 'Surplus after export and charging'} />
+          <MetricCard label="SOC range" value={`${usageSimulation.totals.minSocPercent.toFixed(0)}-${usageSimulation.totals.maxSocPercent.toFixed(0)}%`} helpText={`Planning reserve ${systemLimits.batteryReservePercent}%`} />
+        </div>
+        <div className="usage-flow-grid">
+          <span><strong>{formatNumber(usageSimulation.totals.directSolarKwh)} kWh</strong> direct to house</span>
+          <span><strong>{formatNumber(usageSimulation.totals.batteryChargeKwh)} kWh</strong> charged into battery</span>
+          <span><strong>{formatNumber(usageSimulation.totals.batteryDischargeKwh)} kWh</strong> served from battery</span>
+          <span><strong>{formatNumber(usageSimulation.totals.gridImportKwh)} kWh</strong> grid import for idle load</span>
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <ComposedChart data={usageChartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="label" />
+            <YAxis unit=" kWh" />
+            <Tooltip formatter={(value, name) => [formatDecimal(Number(value), 0), name]} />
+            <Legend />
+            <Bar dataKey="Direct solar" stackId="use" fill="#16a34a" />
+            <Bar dataKey="Battery discharge" stackId="use" fill="#2563eb" />
+            <Bar dataKey="Grid import" fill="#64748b" />
+            <Bar dataKey="Curtailed" fill="#dc2626" />
+            {systemLimits.exportMode !== 'zero-export' ? <Bar dataKey="Exported" fill="#0f766e" /> : null}
+          </ComposedChart>
+        </ResponsiveContainer>
       </div>
 
       <div className="period-card">

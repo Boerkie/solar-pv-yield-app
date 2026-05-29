@@ -214,7 +214,7 @@ function App() {
       </section>
 
       {error ? <div className="error-box">{error}</div> : null}
-      {result ? <Dashboard result={result} /> : <EmptyState />}
+      {result ? <Dashboard result={result} systemLimits={systemLimits} /> : <EmptyState />}
     </main>
   );
 }

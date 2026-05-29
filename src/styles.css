@@ -71,6 +71,7 @@ p {
 .string-editor,
 .map-card,
 .chart-card,
+.usage-card,
 .metric-card,
 .notice-card,
 .period-card,
@@ -202,6 +203,7 @@ p {
 .period-card,
 .notice-card,
 .chart-card,
+.usage-card,
 .empty-state,
 .error-box {
   padding: 18px;
@@ -511,6 +513,30 @@ select:focus {
   padding: 16px;
 }
 
+.usage-card {
+  display: grid;
+  gap: 16px;
+}
+
+.usage-flow-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.usage-flow-grid span {
+  border-radius: 12px;
+  border: 1px solid #e5ebf4;
+  background: #f9fbff;
+  color: #5f6f85;
+  padding: 10px;
+}
+
+.usage-flow-grid strong {
+  display: block;
+  color: #172033;
+}
+
 .period-card {
   display: flex;
   gap: 18px;
@@ -624,6 +650,7 @@ select:focus {
   .metric-grid,
   .chart-grid.two-columns,
   .limit-summary-grid,
+  .usage-flow-grid,
   .string-editor-header,
   .notice-card {
     grid-template-columns: 1fr;

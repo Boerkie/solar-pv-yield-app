@@ -105,3 +105,28 @@ export type SimulationResult = {
     hit: boolean;
   };
 };
+
+export type MonthlyUsageAggregate = {
+  month: number;
+  label: string;
+  pvPotentialKwh: number;
+  directSolarKwh: number;
+  batteryChargeKwh: number;
+  batteryDischargeKwh: number;
+  gridImportKwh: number;
+  exportedKwh: number;
+  curtailedKwh: number;
+  inverterClippedKwh: number;
+};
+
+export type UsageSimulationResult = {
+  batteryChargeLimitKw: number;
+  idleSolarUseCeilingKw: number;
+  usableBatteryKwh: number;
+  totals: Omit<MonthlyUsageAggregate, 'month' | 'label'> & {
+    finalSocPercent: number;
+    minSocPercent: number;
+    maxSocPercent: number;
+  };
+  monthly: MonthlyUsageAggregate[];
+};
