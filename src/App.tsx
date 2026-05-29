@@ -177,9 +177,6 @@ function App() {
         <button type="button" className="secondary-button" onClick={addSolarArray}>Add Solar Array</button>
       </section>
 
-      <SystemLimitsPanel systemLimits={systemLimits} onChange={setSystemLimits} />
-      <LoadProfilePanel loadProfile={loadProfile} fallbackBaseWatts={systemLimits.idleLoadWatts} onChange={setLoadProfile} />
-
       <section className="setup-grid">
         <div className="site-form card">
           <div className="site-card-header">
@@ -232,6 +229,9 @@ function App() {
           />
         ))}
       </section>
+
+      <SystemLimitsPanel systemLimits={systemLimits} onChange={setSystemLimits} />
+      <LoadProfilePanel site={site} loadProfile={loadProfile} fallbackBaseWatts={systemLimits.idleLoadWatts} onChange={setLoadProfile} />
 
       <section className="actions-card card">
         <div>
@@ -335,7 +335,7 @@ async function postSimulation(body: { site: Site; strings: PVStringConfig[] }) {
 
 async function getForecast(site: Site) {
   const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-  const query = `latitude=${encodeURIComponent(site.latitude)}&longitude=${encodeURIComponent(site.longitude)}`;
+  const query = `latitude=${encodeURIComponent(site.latitude)}&longitude=${encodeURIComponent(site.longitude)}&label=${encodeURIComponent(site.label)}`;
   const apiUrls = configuredApiBaseUrl
     ? buildConfiguredApiUrls(configuredApiBaseUrl).map((apiUrl) => apiUrl.replace(/\/simulate$/, `/forecast?${query}`))
     : [

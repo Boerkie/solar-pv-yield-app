@@ -567,13 +567,61 @@ select:focus {
   color: #172033;
 }
 
-.appliance-grid {
+.appliance-picker-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
+  gap: 8px;
 }
 
-.appliance-card {
+.appliance-icon-button {
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+  min-height: 78px;
+  border: 1px solid #ccd6e3;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #49617d;
+  cursor: pointer;
+  padding: 8px 6px;
+}
+
+.appliance-icon-button span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #eef4ff;
+  color: #244061;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.appliance-icon-button small {
+  max-width: 100%;
+  color: #5f6f85;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.appliance-icon-button.enabled {
+  border-color: #2563eb;
+}
+
+.appliance-icon-button.enabled span {
+  background: #172033;
+  color: #ffffff;
+}
+
+.appliance-icon-button.selected {
+  outline: 3px solid #cfe1ff;
+}
+
+.appliance-editor-card {
   display: grid;
   gap: 12px;
   border-radius: 14px;
@@ -582,7 +630,7 @@ select:focus {
   padding: 14px;
 }
 
-.appliance-card.disabled {
+.appliance-editor-card.disabled {
   opacity: 0.68;
 }
 
@@ -617,6 +665,18 @@ select:focus {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 6px;
+}
+
+.month-preset {
+  grid-column: span 2;
+  border: 1px solid #ccd6e3;
+  border-radius: 8px;
+  background: #eef4ff;
+  color: #244061;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 7px 6px;
 }
 
 .month-toggle {
@@ -703,6 +763,14 @@ select:focus {
 .empty-inline {
   border-radius: 14px;
   border: 1px dashed #ccd6e3;
+  background: #f9fbff;
+  color: #5f6f85;
+  padding: 16px;
+}
+
+.tip-inline {
+  border-radius: 14px;
+  border: 1px solid #e5ebf4;
   background: #f9fbff;
   color: #5f6f85;
   padding: 16px;
@@ -894,7 +962,6 @@ select:focus {
   .observed-table,
   .calibration-summary-grid,
   .limit-summary-grid,
-  .appliance-grid,
   .usage-flow-grid,
   .string-editor-header,
   .notice-card {

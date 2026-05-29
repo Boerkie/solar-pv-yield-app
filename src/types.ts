@@ -175,6 +175,9 @@ export type ForecastDay = {
 export type ForecastResult = {
   provider: string;
   providerUrl: string;
+  locationLabel: string;
+  latitude: number;
+  longitude: number;
   timezone: string;
   generatedAt: string;
   days: ForecastDay[];

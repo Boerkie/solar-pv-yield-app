@@ -22,6 +22,20 @@ export function ObservedStatsPanel({ result, systemLimits, loadProfile, observed
     onChange(observedStats.map((row) => row.id === rowId ? { ...row, [field]: value } : row));
   }
 
+  function addObservedYear() {
+    const latestYear = observedStats.reduce((year, row) => Math.max(year, row.year), 2025);
+    onChange([
+      ...observedStats,
+      {
+        id: `observed-${Date.now()}`,
+        year: latestYear + 1,
+        pvGeneratedKwh: 0,
+        gridImportKwh: 0,
+        batteryThroughputKwh: 0
+      }
+    ]);
+  }
+
   return (
     <section className="observed-card">
       <div className="section-heading">
@@ -29,6 +43,7 @@ export function ObservedStatsPanel({ result, systemLimits, loadProfile, observed
           <h2>Observed reality check</h2>
           <p>Optional local-only annual stats. They are used to compare PVGIS potential and the usage-limit model with what your inverter actually reported.</p>
         </div>
+        <button type="button" className="secondary-button" onClick={addObservedYear}>Add year</button>
       </div>
 
       <div className="observed-table">
@@ -58,7 +73,7 @@ export function ObservedStatsPanel({ result, systemLimits, loadProfile, observed
           </div>
         </>
       ) : (
-        <div className="empty-inline">Enter one or more observed years to see calibration factors. The values stay in this browser only.</div>
+        <div className="tip-inline">Enter one or more observed years above to see calibration factors. The values stay in this browser only.</div>
       )}
     </section>
   );

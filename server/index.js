@@ -69,6 +69,7 @@ async function simulateProduction(request, response) {
 async function getForecast(request, response) {
   const latitude = Number(request.query.latitude);
   const longitude = Number(request.query.longitude);
+  const label = String(request.query.label || '').trim();
 
   if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
     response.status(400).json({ message: 'Valid latitude and longitude query parameters are required.' });
@@ -76,7 +77,7 @@ async function getForecast(request, response) {
   }
 
   try {
-    const forecast = await fetchWeatherForecast({ latitude, longitude });
+    const forecast = await fetchWeatherForecast({ latitude, longitude, label });
     response.json(forecast);
   } catch (error) {
     console.error(error);

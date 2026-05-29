@@ -52,9 +52,14 @@ function mergeLoadProfile(value: unknown): LoadProfile {
     return DEFAULT_LOAD_PROFILE;
   }
 
-  const appliances = Array.isArray(loadProfile.appliances)
+  const savedAppliances = Array.isArray(loadProfile.appliances)
     ? loadProfile.appliances.filter(isApplianceLoad)
-    : DEFAULT_LOAD_PROFILE.appliances;
+    : [];
+  const savedApplianceIds = new Set(savedAppliances.map((appliance) => appliance.id));
+  const appliances = [
+    ...savedAppliances,
+    ...DEFAULT_LOAD_PROFILE.appliances.filter((appliance) => !savedApplianceIds.has(appliance.id))
+  ];
 
   return {
     nightBaseWatts: finiteOrDefault(loadProfile.nightBaseWatts, DEFAULT_LOAD_PROFILE.nightBaseWatts),

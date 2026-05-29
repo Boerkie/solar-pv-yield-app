@@ -20,16 +20,19 @@ export async function fetchWeatherForecast(site) {
   }
 
   const payload = await response.json();
-  return normaliseForecastPayload(payload, url.toString());
+  return normaliseForecastPayload(payload, url.toString(), site);
 }
 
-function normaliseForecastPayload(payload, providerUrl) {
+function normaliseForecastPayload(payload, providerUrl, site) {
   const dates = payload?.daily?.time ?? [];
   const shortwaveSums = payload?.daily?.shortwave_radiation_sum ?? [];
 
   return {
     provider: 'Open-Meteo',
     providerUrl,
+    locationLabel: site.label || `${round4(site.latitude)}, ${round4(site.longitude)}`,
+    latitude: round4(Number(payload?.latitude ?? site.latitude)),
+    longitude: round4(Number(payload?.longitude ?? site.longitude)),
     timezone: payload?.timezone ?? 'auto',
     generatedAt: new Date().toISOString(),
     days: dates.map((date, index) => {
@@ -64,4 +67,8 @@ function average(values) {
 
 function round1(value) {
   return Math.round((Number(value) + Number.EPSILON) * 10) / 10;
+}
+
+function round4(value) {
+  return Math.round((Number(value) + Number.EPSILON) * 10000) / 10000;
 }
